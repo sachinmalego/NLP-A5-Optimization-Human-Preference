@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot - DPO_Trainer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <h1>A5: Optimization Human Preference - DPO Trainer Chatbot</h1>
+        </div>
+    </header>
+    
+    <div class="content">
+        <div class="query_box">
+            <div class="chat-box" id="chat-box"></div>
+            <div class="input-container">
+                <textarea id="user-input" placeholder="Type your message..."></textarea>
+                <button id="send-btn">Send</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        $(document).ready(function() {
+            function appendMessage(sender, message) {
+                let messageClass = sender === 'user' ? 'chat-message user' : 'chat-message bot';
+                $("#chat-box").append('<div class="' + messageClass + '">' + message + '</div>');
+                $("#chat-box").scrollTop($("#chat-box")[0].scrollHeight);
+            }
+
+            $("#send-btn").click(function() {
+                let userMessage = $("#user-input").val();
+                if (userMessage.trim() === "") return;
+
+                appendMessage('user', userMessage);  // Add only the user's message
+
+                $("#user-input").val("");  // Clear the input field
+
+                // Send user message to the Flask backend
+                $.ajax({
+                    type: "POST",
+                    url: "/chat",
+                    contentType: "application/json",  // Specify the content type as JSON
+                    data: JSON.stringify({ user_input: userMessage }),  // Send data as JSON
+                    success: function(response) {
+                        appendMessage('bot', response);  // Append only the bot's response
+                    }
+                });
+            });
+
+            $("#user-input").keypress(function(event) {
+                if (event.which == 13 && !event.shiftKey) {
+                    event.preventDefault();
+                    $("#send-btn").click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
